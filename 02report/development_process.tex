@@ -1,0 +1,273 @@
+\section{Development Process and Lessons Learned}
+
+This was a large undertaking in a very short period of time. Despite initial risks, we were able to meet many of our key goals and overcame many challenges. Although we were not able to reach the fullness of our original vision, we created a real and usable application with a solid core of features.
+
+\subsection{Risks}
+
+There is a long history of attempts to mine PubMed for useful relationships, and there have been many specific attempts to use it to search for expertise. As such, there are many known pitfalls that may halt our project, and here we discuss those risks and our plans to try and mitigate them.
+
+\subsubsection{Author Identity Matching}
+Author identity matching is a known yet critical challenge in bibliographic databases like PubMed. Given the vast amount of publications in PubMed, it is common for multiple authors to share the same name. In such cases, it is difficult to determine which papers are written by which author, leading to inaccurate citation counts, incomplete author profiles, and decreased research visibility. This is especially true for authors with common names or those who have changed their names or institutions throughout their careers.
+
+To combat this, we wanted to attempt to use pre-existing solutions such as OpenAlex \cite{ref-openalex}. If, for one reason or another, these did not work, we planned to fall back on using first and last names plus institutions as a unique entity. This might have over-fragmented the authors, but the effect should have been minimal in most scenarios. Furthermore, we were limiting our scope to just a few years of PubMed’s decades-long backlog, limiting the amount of institution hopping that may be present in the data.
+
+Sadly, it turns out that we simply didn't have time to even begin to tackle this problem. As is often the case, a mountain of small and conceptually uninteresting problems took our very limited time. However, in these last few weeks, we got to the point where we encountered this problem. This problem will likely be top-of-mind for whoever takes on this project next.
+
+
+\subsubsection{Off Target MeSH Terms}
+While MeSH terms can be a powerful tool for finding relevant articles on a specific topic, incorrect or off-target MeSH terms can lead to inaccurate or incomplete search results. For example, a researcher may use a MeSH term like "heart attack" to search for articles on cardiac arrest, which may result in missing relevant articles that are indexed using different MeSH terms, such as "myocardial infarction" or "coronary disease."
+
+To address the problem, we planned to use pre-existing filterings of MeSH terms. If using these still presents an issue, we would have applied some home-brew solutions.
+
+In practice, we found a way around this problem entirely. We found that the types of query our customer were interested in searching simply could not be mapped to MeSH terms. So we allowed terms to be searched through the abstracts and titles of articles using some of the strongest features provided by ElasticSearch.
+
+\subsubsection{Performance of Data Lookup}
+At least initially, we will work with just a few years of PubMed data. We have the benefit that our results need to be up to date, and the older the actions of an author, the less relevant they are. Focusing on the recent few years should give us the most needed results. In fact, going further back may muddy our results.
+
+In practice, our choice to use ElasticSearch seems to have largely negated this risk. We faced some limits in the kinds of queries we could make, and in particular our original goal of returning groups of authors to meet very niche requests would run into this problem, and would require new solutions.
+
+\subsubsection{Preprocessing Compute Time and Cost}
+This is somewhat in tension with the first couple of requirements, but our main measure to limit this, especially early on, is to narrow the scope of our data set as described above.
+
+We did not end up running into this problem, largely because we kept pre-processing to a minimum. A full load only took 4 hours, which is a reasonable amount of time to be down on a Saturday night around midnight. Improvement on this point would involve some sort of rolling deployment of the latest fill from PubMed of the ElasticSearch index.
+
+
+\subsection{Requirements and Progress}
+
+We had an ambitious vision, and although we did not obtain that vision entirely, we were able to implement and deploy a useful app with a solid core of features, including some of the nice-to-haves, such as advanced filtering features.
+
+\subsubsection{Estimating Requirements}
+
+We have tabulated the detailed requirements for this service in \autoref{t:req-func-search-input}, \autoref{t:req-func-search-result-display}, \autoref{t:req-func-search-result-sorting}, \autoref{t:req-non-func}. Estimates are made using the T-Shirt size method, and Priorities are given using the MoSCoW method. Times are given as the milestone marker, e.g. M2 for Milestone 2.
+
+The requirements are broken into several key aspects of the project. First, there are functional requirements that can be (more or less) concretely tested, and there are non-functional requirements that are either too soft to test, involve the methods used to meet the other requirements that are not independently testable, or are reliant on externalities that cannot in practice be tested. The functional requirements are further broken down into requirements for the search interface, the contents of the search results, and the interface for interacting with those search results.
+
+\subsubsection{Meeting the Requirements}
+
+We have only just begun to meet the requirements laid out in our original vision. The pace of our progress has been mixed. In particular, the lack of access to a shared cloud environment until late into the project has slowed our work considerably. However, multiple team members now have local access to our data, and we can now better utilize our team members for solving the hard problems that lie ahead.
+
+\def\requirementwidth{11.3cm}
+\def\matrixwidth{1.3cm}
+
+\subsubsection{Search Input Requirements}
+
+Our search interface will evolve over the course of the project, beginning with more limited options for the user and expanding as we improve our capabilities. We will allow the user to search through at least 5 years of PubMed history, with hopes to expand further as time allows. The user's input will be used to make MeSH keyword term searches on the backend, with the user directly selecting MeSH terms initially but with a parsed natural language prompt after that. In addition, we will expand to include author prominence as part of the search interface. For the detailed requirements for our search input, see \autoref{t:req-func-search-input}. 
+
+\begin{table}[ht!]
+    \tiny
+    \caption{\small This table lists \textbf{functional} requirements for the Doyen service \textbf{Search Input}.\label{t:req-func-search-input}}
+    \begin{tabular}{l p{\requirementwidth} c c c}
+        \toprule
+        \thead{ID} & \thead{Title} & \thead{Est} & \thead{Pr} & \thead{When} \\
+        \midrule
+        30000 & The service will search PubMed’s database for experts when requested by the user. & XL & M & M2 \\
+        30010 & ... return a set of authors who have publications listed in PubMed’s database as the experts when a search is conducted for the user. & L & M & M2 \\ 
+        30020 & ... conduct an expert search based on a natural language query when requested by the user. & L & M & M2 \\ 
+        30030 & ... search at least the most recent 5 years of publications from the PubMed database for experts when conducting an expert search. & L & M & M3 \\
+        30040 & ... return responses that accurately represent author expertise and prominence when a search is requested by the user. & M & M & M3 \\ 
+        30050 & ... save a user’s search history when the user has conducted a search. & M & W & M4 \\ 
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht!]
+    \tiny
+    \caption{\small This table is the design and test traceability matrix for the \textbf{functional} requirements of the Doyen service \textbf{Search Input}.\label{t:tm-func-search-input}}
+    \begin{tabular}{l p{\requirementwidth} p{\matrixwidth} p{\matrixwidth}}
+        \toprule
+        \thead{ID} & \thead{Design} & \thead{Tests} & \thead{Status} \\
+        \midrule
+        30000 & Publications from the PubMed databases are indexed into Elasticsearch for persistence and access. The Doyen API serves the UI data for the user's expert searches. & Manual, Unit, E2E & Complete \\
+        30010 & The UI allows the user to execute the search. The API returns the data found in Elasticsearch. & Manual, Unit, E2E & Complete \\ 
+        30020 & The UI receives a natural language query from the user to perform a search. & Manual, Unit, E2E & Complete  \\ 
+        30030 & At least 5 years of publications are indexed into the system's Elasticsearch index. & Manual & Complete  \\
+        30040 & Elasticsearch's relevancy scoring aids the system in searching for experts based on the titles, abstracts, and MESH terms related to their publications. & Manual, Unit & Complete  \\ 
+        30050 & NA & NA & Out of Scope \\ 
+    \end{tabular}
+\end{table}
+
+\subsubsection{Search Result Requirements}
+
+Our search results will be derived, at least initially, from PubMed data. We will need to preprocess that data considerably and will query it using ElasticSearch, at least initially. The service will display the authors that were found from the query, initially as a simple list of names, but hopefully later expanding into more informative and dynamic displays. Numerous metrics will be made available, as well as the author's co-relationships and locations. Furthermore, we will allow results to show multiple authors that can meet a user constraint. We will work to make it easy for the user to evaluate the results by drilling down into authors' past publications and the metadata from those publications. Lastly, the results will be exportable by the user as a PDF. The detailed list of requirements is in \autoref{t:req-func-search-result-display}.
+
+\begin{table}[ht!]
+    \tiny
+    \caption{\small This table lists \textbf{functional} requirements for the contents of Doyen service's \textbf{search results}.\label{t:req-func-search-result-display}}
+    \centering
+    \begin{tabular}{l p{\requirementwidth} c c c}
+        \toprule
+        \thead{ID} & \thead{Title} & \thead{Est} & \thead{Pr} & \thead{When} \\
+        \midrule
+        31000 & The service will provide expert search results based on PubMed’s database when a search is executed. & L & M & M2 \\ 
+        31010 & ... display a set of authors as the results when an expert search is successful. & L & M & M2 \\ 
+        31020 & ... make details of the authors available when an expert search is successful. & M & M & M2 \\ 
+        31030 & ... display connections between authors and coauthors in a search result set when an expert search is successfully executed. & L & S & M3 \\ 
+        31040 & ... navigate to the details of connected authors in a search result set when requested by the user. & M & S & M3 \\ 
+        31050 & ... provide the total number of citations of an author’s work when an expert search is successfully executed. & M & S & M2 \\ 
+        31060 & ... provide the total number of peers an author has co-authored with when an expert search is successfully executed. & M & S & M2 \\ 
+        31070 & ... provide the total number of publications an author has participated in as an author or co-author when an expert search is successfully executed. & M & S & M2 \\ 
+        31080 & ... provide the set of scientific journals an author has been published in when an expert search is successfully executed. & M & S & M3 \\ 
+        31085 & ... provide a set of Medical Subject Headings (MeSH) associated with the expert’s publications when an expert search is successful. & M & M & M3 \\ 
+        31090 & ... provide the ranking of scientific journals an author has been published in when an expert search is successfully executed. & M & S & M3 \\ 
+        31100 & ... provide the author’s current institution, as determined from the PubMed database, if available, when an expert search is successfully executed. & M & S & M3 \\ 
+        31110 & ... provide institutional ranking metrics associated with an author when an expert search is successfully executed. & M & S & M3 \\ 
+        31120 & ... provide feedback to the user when no expert can be found for a provided expert search criteria. & S & M & M2 \\ 
+        31130 & ... export the set of authors in an expert search result set as formatted text when requested by the user. & S & M & M3 \\ 
+        31140 & ... save the user’s filter preferences when presenting the results of an expert search to the user. & S & C & M4 \\ 
+        31150 & ... save the user’s sorting preferences when presenting the results of an expert search to the user. & S & C & M4 \\ 
+        31170 & ... export the results of an expert search to PDF when requested by the user. & M & C & M4 \\
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht!]
+    \tiny
+    \caption{\small This table is the design and test traceability matrix for the \textbf{functional} requirements for the contents of Doyen service's \textbf{search results}.\label{t:tm-func-search-result-display}}
+    \centering
+    \begin{tabular}{l p{\requirementwidth} p{\matrixwidth} p{\matrixwidth}}
+        \toprule
+        \thead{ID} & {\thead{Design}} & \thead{Tests} & \thead{Status} \\
+        \midrule
+        31000 & The publication data is indexed into Elasticsearch and persisted. The API layer queries this data to serve the UI for the user. & Manual & Complete \\ 
+        31010 & The UI displays the list of authors received from the API (via Elasticsearch). & Manual, Unit & Complete \\ 
+        31020 & The UI displays author metric details as a table after a search retrieves a set of experts based on aggregate queries performed at the API level.  & Manual, Unit & Complete \\ 
+        31030 & The UI displays all co-authors the expert has published with. When the expert has a set of collaborators who have authored works with them, this list is presented as an accordion in the UI as part of the details table. & Manual, Unit & Complete \\ 
+        31040 & The co-author links displayed in the UI will bring the user to said co-author's details page. & Manual & Partial \\ 
+        31050 & The UI provides a citation count related to the search based on aggregate queries performed at the API level. & Manual & Complete \\ 
+        31060 & The API provides a list of co-authors related to the search. When these authors have a known PubMed Identifier, the UI can find the details of this user. & Manual & Partial \\ 
+        31070 & The UI provides a publication count related to the search based on aggregate queries performed at the API level. & Manual & Complete \\ 
+        31080 & The API provides a publication set related to an expert's ID. This is not yet present in the UI. & Manual & Partial \\ 
+        31085 & NA & NA & Incomplete \\ 
+        31090 & NA & NA & Incomplete  \\ 
+        31100 & NA & NA & Incomplete \\ 
+        31110 & NA & NA & Incomplete \\ 
+        31120 & The UI shows the set or empty set of experts for the search. If the set is empty, the text is displayed to the user, informing them of this. & Manual & Complete \\ 
+        31130 & The UI allows the user to export the search results as a PDF. & Manual & Complete \\ 
+        31140 & NA & NA & Out of Scope \\ 
+        31150 & NA & NA & Out of Scope \\ 
+        31170 & The UI allows the user to export the search results as a PDF. & Manual & Complete \\
+    \end{tabular}
+\end{table}
+
+\subsubsection{Search Result Sorting and Filtering}
+
+Once the search results are reported, the service will give the users multiple tools for drilling down into the results by allowing them to sort by various rankings and other metrics, time range of publication matches, and geographical location as determined by their institution. The detailed list of requirements can be found in \autoref{t:req-func-search-result-sorting}.
+
+\begin{table}[ht!]
+    \tiny
+    \caption{\small This table lists \textbf{functional} requirements for the Doyen service's \textbf{search result sorting and filtering}.\label{t:req-func-search-result-sorting}}
+
+    \centering
+    \begin{tabular}{l p{\requirementwidth} c c c}
+        \toprule
+        \thead{ID} & \thead{Title} & \thead{Est} & \thead{Pr} & \thead{When} \\
+        \midrule
+
+        32010 & The service will sort the set of expert search results by the number of times an author’s work has been cited when requested by the user. & M & S & M3 \\ 
+        32020 & ... sort the set of expert search results by the average rankings of scientific journal publications of each author when requested by the user. & M & S & M3 \\ 
+        32030 & ... sort the set of expert search results by the total number of publications of each author when requested by the user. & M & S & M3 \\ 
+        32040 & ... sort the set of expert search results by rankings of their current institution of each author when requested by the user. & M & S & M3 \\ 
+        32050 & ... sort the set of expert search results for an author by metrics of their co-authors when requested by the user. & M & S & M3 \\ 
+        32060 & ... sort the set of expert search results by the total citation count of each author when requested by the user. & M & S & M3 \\ 
+        32080 & ... sort a set of experts by geographical distance measured between the user and the expert’s institution when requested by the user. & L & W & M4 \\ 
+        32070 & ... filter the set of authors in the search results by a time range when the user specifies a start and end date. & S & S & M2 \\ 
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht!]
+    \tiny
+    \caption{\small This table is the design and test traceability matrix for the \textbf{functional} requirements for the Doyen service's \textbf{search result sorting and filtering}.\label{t:tm-func-search-result-sorting}}
+
+    \centering
+    \begin{tabular}{l p{\requirementwidth} p{\matrixwidth} p{\matrixwidth}}
+        \toprule
+        \thead{ID} & \thead{Design} & \thead{Tests} & \thead{Status}  \\
+        \midrule
+
+        32010 & The UI can set the sorting and filtering preferences of the user in its request to the API. & Manual, Unit & Complete \\ 
+        32020 & NA & NA & Incomplete \\ 
+        32030 & The total number of publications to journals is a sortable attribute of a search's results from the UI. The author's current institution ranking is a sortable attribute of a search's results from the UI. & Manual, Unit & Complete \\ 
+        32040 & NA & NA & Incomplete \\ 
+        32050 & An author's set of co-authors to published journals is available from the API, but not yet integrated with the UI. & Manual & Partial \\ 
+        32060 & The number of citations for an author's work is a sortable attribute of a search's results from the UI. & Manual, Unit & Complete \\ 
+        32080 & NA & NA & Out of Scope \\ 
+        32070 & The user can search within the time range using the UI, which will send the time range parameters when communicating with the API. & Manual, Unit & Complete \\ 
+    \end{tabular}
+\end{table}
+
+\subsubsection{Non-Functional Requirements}
+
+There are many things that will make a service good and valuable that are not easy to test. Things like its reliability and availability, its ability to scale smoothly with changes in demand, its accessibility to various devices, its performance, and ultimately how useful the users find its results. Although not testable, these requirements are no less essential to defining the scope and challenges of our project.
+
+As stated above, we aim to deploy a state-of-the-art service with modern standards of reliability and availability, including ensuring the website is mobile-friendly. Although the expected maximum load on the service is not expected to be high, we will ensure that those modest requirements are thoroughly met and that users get prompt responses that they find generally correct and satisfying. The full list of requirements can be found in \autoref{t:req-non-func}.
+
+\begin{table}[ht!]
+    \tiny
+    \caption{\small This table lists the \textbf{non-functional} requirements for the Doyen service.\label{t:req-non-func}}
+    \centering
+    \begin{tabular}{l p{\requirementwidth} c c c}
+        \toprule
+        \thead{ID} & \thead{Title} & \thead{Est} & \thead{Pr} & \thead{When} \\
+        \midrule
+        40000 & The service will be publicly available when requested by the user. & S & M & M2 \\ 
+        40010 & ... be available 95\% of the time when requested by the user. & L & M & M2 \\ 
+        41000 & ... be able to process at least 1000 expert search queries per day when requested by users. & M & M & M3 \\ 
+        42000 & ... be accessible by a web browser when the user accesses it. & S & M & M2 \\ 
+        42010 & ... provide mobile-friendly views when the user accesses it. & L & S & M3 \\ 
+        43000 & ... provide expert search results in under 10 seconds 95\% of the time when requested by the user. & M & M & M3 \\ 
+        44000 & ... be intuitive to use for expert search by at least 80\% of users when they search for an expert. & M & S & M2 \\ 
+    \end{tabular}
+\end{table}
+
+\begin{table}[ht!]
+    \tiny
+    \caption{\small This table is the design and test traceability matrix for the \textbf{non-functional} requirements for the Doyen service.\label{t:tm-non-func}}
+    \centering
+    \begin{tabular}{l p{\requirementwidth} p{\matrixwidth} p{\matrixwidth}}
+        \toprule
+        \thead{ID} & \thead{Design} & \thead{Tests} & \thead{Status}\\
+        \midrule
+        40000 & The system is publically available: https://doyenapp.org/ & Manual & Complete \\ 
+        40010 & All system components are hosted by cloud provider platform-as-a-service resources. These each has general availability of more than 99 percent. Despite that, the system would be unavailable if any cloud resource failed (approximately 1 percent chance for each), and the union of all system component availabilities still exceeds 95 percent. & Analysis & Complete \\ 
+        41000 & All system components are hosted on scalable cloud architectures, which can handle this load entirely through scaling vertically. & Manual, Analysis & Complete \\ 
+        42000 & The system is publically available: https://doyenapp.org/ & Manual &  Complete \\ 
+        42010 & The front-end is designed and implemented in React with mobile-first responsiveness patterns. & Manual, Analysis & Complete \\ 
+        43000 & The system is hosted on public cloud infrastructure using HTTP communication. Elasticsearch indexes the data for access to the user via the UI and API. & Manual, Analysis & Complete \\ 
+        44000 & The front-end design is the result of continuous feedback and iterations from the customers and development team via an Agile process. & Manual, Analysis & Complete \\ 
+    \end{tabular}
+\end{table}
+
+
+\subsection{Our Developer Journey}
+
+We have tackled a hard and unsolved problem and are attempted to craft a novel and effective solution on truly ambitious timelines. Although much of the circumstances of this project are unavoidably contrived and artificial, by nature of being a capstone course, it still holds valuable lessons for real-world software engineering. The tight timelines required that we plan our scope carefully, and our newness to the field has required that our plans be nimble and amenable to change.
+
+\subsubsection{Front End}
+
+The front-end team's journey began to render an easy-to-use application deployed to Vercel that would allow users to interact with our project. Initially, we planned to build an elaborate interactive accordion-style visualization to represent the MeSH term tree. This proved a bit too difficult given the time constraints associated with the overall project and the necessity of other more important UI features. Thus, the MeSH tree feature was saved for future work. 
+
+The attention then turned to calling the API and delivering the relevant API results in a way that users could easily interact with. Initially, this was returned in "Expert" cards with simple information about each author that users could click on to see more detailed information. Armed with useful feedback from the project customer, the front-end team pivoted to displaying the results in an interactive table. The table is concise and utilizes toggle-able features that show and hide specific details without providing too much visual clutter. 
+
+As the API has been updated in recent days, the front-end team has worked to incorporate the newly returned API data. Having received and applied the customer feedback early on in the project process, the front-end team set the UI in a way that can be easily built upon to add and remove future complexity as data updates. Several secondary features have been implemented as well, including user profiles for saving and exporting historical searches. 
+
+\subsubsection{API}
+
+Developing the API required interfacing with both the UI and persistence layer dependency. The challenges were to make the interface for the UI more narrow while meeting all of its use cases, protecting the credentials of the data sources, calculating aggregates when needed, and allowing the system to be extensible into additional or changing data sources.
+
+Initially, we sought to unify the technology stack and develop the API in Python hosted on AWS. However, given the late arrival of the AWS credits, differing levels of familiarity with this stack, and time constraints, the API was developed in C-Sharp and .NET using the Microsoft Stack.
+
+One of the most significant challenges was building the queries and aggregations into Elasticsearch. The PubMed data, as well as the Elasticsearch index, is centered around publications. However, the Doyen system focuses on the experts who authored those publications. For example, each publication's data contains a set of other PubMed entries it references by their ID. To calculate the aggregate for citation counts, this meant  finding how many times each publication's identifier appeared in this list for other entries and then summing all of the publication-specific citation counts for a given author based on their set of publications. In SQL, this would have been a very different query, but Elasticsearch's power was in finding the relevant articles.
+
+We faced a trade-off in designing what data to produce aggregate metrics for. The extremely local design would aggregate based on the limit and offsets (the page) of a given search. The global design would aggregate based on all of the publications in the database. After discussions with the customer, we elected a design between these two extremes which aggregates based on all entries in the context of a search and then presents these sums as part of a paginated result set to the user.
+
+\subsubsection{Back End}
+
+In the beginning, one of our core questions was how best to store our data, and in particular whether we should first group it by author or leave it grouped by article, and group by author when processing a request. We developed the outline of a pipeline for processing the PubMed content.
+
+Later, we decided to settle on using ElasticSearch, and we had to get an instance hosted first locally and then on the cloud. We found that using the docker image for ElasticSearch allowed us to reliably run elastic search on any of our operating systems.  We conceptually finished our PubMed processing pipeline, turning it into a general CLI tool with increasing options to control the amount of content loaded.
+
+As we were approaching the end of the term, we developed a CloudFormation template to deploy a could ecosystem for running an EC2 instance with ElasticSearch. We initially had difficulties running ElasticSearch directly in EC2, but found success running the system in Docker
+
+Finally, in this last weeks we worked ironed out the issues in our pipeline, and allowed us to reliably load much larger sections of the PubMed data. We documented the deployment process and added some extra enhancements.
+
+\subsubsection{Team Coordination}
+
+We found that it was difficult for us to all remain in sync given the lack of overlapping time. This made it difficult to fit things neatly into sprints, or a similar regular structure. However we communicated frequently using Discord, and when issues arose, we were able to address them fairly quickly. Given how tight our timelines were, every small delay was keenly felt, however the only thing we felt lacking was more time to work together.
