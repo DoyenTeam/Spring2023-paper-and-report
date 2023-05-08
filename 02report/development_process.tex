@@ -1,57 +1,57 @@
 \section{Development Process and Lessons Learned}
 
-This was a large undertaking in a very short period of time. Despite initial risks, we were able to meet many of our key goals and overcame many challenges. Although we were not able to reach the fullness of our original vision, we created a real and usable application with a solid core of features.
+This was an enormous undertaking in a brief period of time. Despite initial risks, we met many key goals and overcame many challenges. Although we could not reach the fullness of our original vision, we created a real and usable application with a solid core of features. 
 
 \subsection{Risks}
 
-There is a long history of attempts to mine PubMed for useful relationships, and there have been many specific attempts to use it to search for expertise. As such, there are many known pitfalls that may halt our project, and here we discuss those risks and our plans to try and mitigate them.
+There is a long history of attempts to mine PubMed for useful relationships, and there have been many specific attempts to use it to search for expertise. As such, there are many known pitfalls that may halt our project, and here we discuss those risks and our plans to try and mitigate them. 
 
 \subsubsection{Author Identity Matching}
-Author identity matching is a known yet critical challenge in bibliographic databases like PubMed. Given the vast amount of publications in PubMed, it is common for multiple authors to share the same name. In such cases, it is difficult to determine which papers are written by which author, leading to inaccurate citation counts, incomplete author profiles, and decreased research visibility. This is especially true for authors with common names or those who have changed their names or institutions throughout their careers.
+Author identity matching is a known yet critical challenge in bibliographic databases like PubMed. Given the vast amount of publications in PubMed, it is common for multiple authors to share the same name. This is especially true for authors with common names or those who have changed their names or institutions throughout their careers. In such cases, it is difficult to determine which papers are written by which author, leading to inaccurate citation counts, incomplete author profiles, and decreased research visibility. 
 
-To combat this, we wanted to attempt to use pre-existing solutions such as OpenAlex \cite{ref-openalex}. If, for one reason or another, these did not work, we planned to fall back on using first and last names plus institutions as a unique entity. This might have over-fragmented the authors, but the effect should have been minimal in most scenarios. Furthermore, we were limiting our scope to just a few years of PubMed’s decades-long backlog, limiting the amount of institution hopping that may be present in the data.
+We initially planned to combat this with preexisting solutions such as OpenAlex \cite{ref-openalex}. If, for one reason or another, these did not work, we had planned to fall back on using first and last names plus institutions as a unique entity. This might have over-fragmented the authors, but the effect should have been minimal in most scenarios. Furthermore, we were limiting our scope to just a few years of PubMed's decades-long backlog, limiting the amount of institution hopping that may be present in the data. 
 
-Sadly, it turns out that we simply didn't have time to even begin to tackle this problem. As is often the case, a mountain of small and conceptually uninteresting problems took our very limited time. However, in these last few weeks, we got to the point where we encountered this problem. This problem will likely be top-of-mind for whoever takes on this project next.
+Sadly, it turns out that we did not even have time to begin to tackle this problem. As is often the case, a mountain of small and conceptually uninteresting problems took our limited time. However, in these last few weeks, we got to the point where we encountered this problem. This problem will likely be top-of-mind for whoever takes on this project next. 
 
 
 \subsubsection{Off Target MeSH Terms}
-While MeSH terms can be a powerful tool for finding relevant articles on a specific topic, incorrect or off-target MeSH terms can lead to inaccurate or incomplete search results. For example, a researcher may use a MeSH term like "heart attack" to search for articles on cardiac arrest, which may result in missing relevant articles that are indexed using different MeSH terms, such as "myocardial infarction" or "coronary disease."
+While MeSH terms can be a powerful tool for finding relevant articles on a specific topic, incorrect or off-target MeSH terms can lead to inaccurate or incomplete search results. For example, a researcher may use a MeSH term like ``heart attack'' to search for articles on cardiac arrest, which may result in missing relevant articles that are indexed using different MeSH terms, such as ``myocardial infarction'' or ``coronary disease.'' 
 
-To address the problem, we planned to use pre-existing filterings of MeSH terms. If using these still presents an issue, we would have applied some home-brew solutions.
+We initially planned to use preexisting filterings of MeSH terms to address the problem. If using these still presented an issue, we would have applied some home-brew solutions. 
 
-In practice, we found a way around this problem entirely. We found that the types of query our customer were interested in searching simply could not be mapped to MeSH terms. So we allowed terms to be searched through the abstracts and titles of articles using some of the strongest features provided by ElasticSearch.
+In practice, we found a way around this problem entirely. We found that the types of queries our customers were interested in searching simply could not be mapped to MeSH terms. So we allowed terms to be searched through the abstracts and titles of articles using some of the strongest features provided by Elasticsearch. 
 
 \subsubsection{Performance of Data Lookup}
-At least initially, we will work with just a few years of PubMed data. We have the benefit that our results need to be up to date, and the older the actions of an author, the less relevant they are. Focusing on the recent few years should give us the most needed results. In fact, going further back may muddy our results.
+At least initially, we are working with just a few years of PubMed data. We have the benefit that our results need to be up to date, and the older the actions of an author, the less relevant they are. Focusing on the recent few years should give us the most needed results. Going further back may muddy our results. 
 
-In practice, our choice to use ElasticSearch seems to have largely negated this risk. We faced some limits in the kinds of queries we could make, and in particular our original goal of returning groups of authors to meet very niche requests would run into this problem, and would require new solutions.
+Our choice to use Elasticsearch has largely negated this risk. We faced some limits in the kinds of queries we could make, and in particular, our original goal of returning groups of authors to meet very niche requests would run into this problem and require new solutions. 
 
 \subsubsection{Preprocessing Compute Time and Cost}
-This is somewhat in tension with the first couple of requirements, but our main measure to limit this, especially early on, is to narrow the scope of our data set as described above.
+This is somewhat in tension with the first couple of requirements, but our primary measure to limit this, especially early on, was to narrow the scope of our data set as described above. 
 
-We did not end up running into this problem, largely because we kept pre-processing to a minimum. A full load only took 4 hours, which is a reasonable amount of time to be down on a Saturday night around midnight. Improvement on this point would involve some sort of rolling deployment of the latest fill from PubMed of the ElasticSearch index.
+We did not end up running into this problem, mainly because we kept preprocessing to a minimum. A full load only took 4 hours, a reasonable amount of time to be down on a Saturday night around midnight. Improvement on this point would involve rolling deployment of the latest fill from PubMed of the Elasticsearch index. 
 
 
 \subsection{Requirements and Progress}
 
-We had an ambitious vision, and although we did not obtain that vision entirely, we were able to implement and deploy a useful app with a solid core of features, including some of the nice-to-haves, such as advanced filtering features.
+We had an ambitious vision, and although we did not obtain that vision entirely, we implemented and deployed a helpful app with a solid core of features, including some of the nice-to-haves, such as advanced filtering features. 
 
 \subsubsection{Estimating Requirements}
 
-We have tabulated the detailed requirements for this service in \autoref{t:req-func-search-input}, \autoref{t:req-func-search-result-display}, \autoref{t:req-func-search-result-sorting}, \autoref{t:req-non-func}. Estimates are made using the T-Shirt size method, and Priorities are given using the MoSCoW method. Times are given as the milestone marker, e.g. M2 for Milestone 2.
+We have tabulated the detailed requirements for this service in \autoref{t:req-func-search-input}, \autoref{t:req-func-search-result-display}, \autoref{t:req-func-search-result-sorting}, and \autoref{t:req-non-func}. Estimates are made using the T-Shirt size method, and Priorities are given using the MoSCoW method. Times are given as the milestone marker, e.g. M2 for Milestone 2.
 
-The requirements are broken into several key aspects of the project. First, there are functional requirements that can be (more or less) concretely tested, and there are non-functional requirements that are either too soft to test, involve the methods used to meet the other requirements that are not independently testable, or are reliant on externalities that cannot in practice be tested. The functional requirements are further broken down into requirements for the search interface, the contents of the search results, and the interface for interacting with those search results.
+The requirements are broken into several key aspects of the project. First, there are functional requirements that can be (more or less) concretely tested, and there are non-functional requirements that are either too soft to test, involve the methods used to meet the other requirements that are not independently testable, or are reliant on externalities that cannot in practice be tested. The functional requirements are further broken down into requirements for the search interface, the contents of the search results, and the interface for interacting with those search results. 
 
 \subsubsection{Meeting the Requirements}
 
-We have only just begun to meet the requirements laid out in our original vision. The pace of our progress has been mixed. In particular, the lack of access to a shared cloud environment until late into the project has slowed our work considerably. However, multiple team members now have local access to our data, and we can now better utilize our team members for solving the hard problems that lie ahead.
+We have only just begun meeting the requirements in our original vision. The pace of our progress has been mixed. In particular, the lack of access to a shared cloud environment until late into the project has slowed our work considerably. However, multiple team members now have local access to our data, and we can now better utilize our team members to solve the complex problems that lie ahead. 
 
 \def\requirementwidth{11.3cm}
 \def\matrixwidth{1.3cm}
 
 \subsubsection{Search Input Requirements}
 
-Our search interface will evolve over the course of the project, beginning with more limited options for the user and expanding as we improve our capabilities. We will allow the user to search through at least 5 years of PubMed history, with hopes to expand further as time allows. The user's input will be used to make MeSH keyword term searches on the backend, with the user directly selecting MeSH terms initially but with a parsed natural language prompt after that. In addition, we will expand to include author prominence as part of the search interface. For the detailed requirements for our search input, see \autoref{t:req-func-search-input}. 
+Our search interface evolved throughout the project, beginning with more limited options for the user and expanding as we improved our capabilities. We allow the user to search through at least five years of PubMed history. The user's input is used to make MeSH keyword term searches on the back-end, with the user directly selecting MeSH terms initially but with a parsed natural language prompt afterward. In addition, we expanded to include author prominence as part of the search interface. For the detailed requirements for our search input, see \autoref{t:req-func-search-input}. 
 
 \begin{table}[ht!]
     \tiny
@@ -87,7 +87,7 @@ Our search interface will evolve over the course of the project, beginning with 
 
 \subsubsection{Search Result Requirements}
 
-Our search results will be derived, at least initially, from PubMed data. We will need to preprocess that data considerably and will query it using ElasticSearch, at least initially. The service will display the authors that were found from the query, initially as a simple list of names, but hopefully later expanding into more informative and dynamic displays. Numerous metrics will be made available, as well as the author's co-relationships and locations. Furthermore, we will allow results to show multiple authors that can meet a user constraint. We will work to make it easy for the user to evaluate the results by drilling down into authors' past publications and the metadata from those publications. Lastly, the results will be exportable by the user as a PDF. The detailed list of requirements is in \autoref{t:req-func-search-result-display}.
+Our search results are derived from PubMed data. We preprocess that data considerably and query it using Elasticsearch. The service displays the authors found from the query. Initially, the display was a simple list of names, but later we expanded into more informative and dynamic displays. Numerous metrics and the author's co-relationships are made available. Furthermore, we allow results to show multiple authors that can meet a user constraint. We worked to make it easy for the user to evaluate the results by drilling down into authors' past publications and their metadata. Lastly, the results are exportable by the user as a PDF. The detailed list of requirements is in \autoref{t:req-func-search-result-display}.
 
 \begin{table}[ht!]
     \tiny
@@ -149,7 +149,7 @@ Our search results will be derived, at least initially, from PubMed data. We wil
 
 \subsubsection{Search Result Sorting and Filtering}
 
-Once the search results are reported, the service will give the users multiple tools for drilling down into the results by allowing them to sort by various rankings and other metrics, time range of publication matches, and geographical location as determined by their institution. The detailed list of requirements can be found in \autoref{t:req-func-search-result-sorting}.
+Once the search results are reported, the service gives the users multiple tools for drilling down into the results by allowing them to sort by various rankings and other metrics. The detailed list of requirements can be found in \autoref{t:req-func-search-result-sorting}.
 
 \begin{table}[ht!]
     \tiny
@@ -195,9 +195,9 @@ Once the search results are reported, the service will give the users multiple t
 
 \subsubsection{Non-Functional Requirements}
 
-There are many things that will make a service good and valuable that are not easy to test. Things like its reliability and availability, its ability to scale smoothly with changes in demand, its accessibility to various devices, its performance, and ultimately how useful the users find its results. Although not testable, these requirements are no less essential to defining the scope and challenges of our project.
+Many things that make a service excellent and valuable are hard to test. Things like its reliability and availability, its ability to scale smoothly with changes in demand, its accessibility to various devices, its performance, and ultimately how useful the users find its results. Although not testable, these requirements are no less essential to defining the scope and challenges of our project. 
 
-As stated above, we aim to deploy a state-of-the-art service with modern standards of reliability and availability, including ensuring the website is mobile-friendly. Although the expected maximum load on the service is not expected to be high, we will ensure that those modest requirements are thoroughly met and that users get prompt responses that they find generally correct and satisfying. The full list of requirements can be found in \autoref{t:req-non-func}.
+As stated above, we deployed a state-of-the-art service with modern standards of reliability and availability. Although the expected maximum load on the service is low, we ensured that those modest requirements are thoroughly met and that users get prompt responses that they find generally correct and satisfying. The complete list of requirements can be found in \autoref{t:req-non-func}.
 
 \begin{table}[ht!]
     \tiny
@@ -238,36 +238,36 @@ As stated above, we aim to deploy a state-of-the-art service with modern standar
 
 \subsection{Our Developer Journey}
 
-We have tackled a hard and unsolved problem and are attempted to craft a novel and effective solution on truly ambitious timelines. Although much of the circumstances of this project are unavoidably contrived and artificial, by nature of being a capstone course, it still holds valuable lessons for real-world software engineering. The tight timelines required that we plan our scope carefully, and our newness to the field has required that our plans be nimble and amenable to change.
+We have tackled a challenging and unsolved problem and are attempting to craft a novel and effective solution on ambitious timelines. Although much of the circumstances of this project are unavoidably contrived and artificial, by nature of being a capstone course, it still holds valuable lessons for real-world software engineering. The tight timelines required that we plan our scope carefully, and our newness to the field has required that our plans be nimble and amenable to change. 
 
-\subsubsection{Front End}
+\subsubsection{Front-End}
 
-The front-end team's journey began to render an easy-to-use application deployed to Vercel that would allow users to interact with our project. Initially, we planned to build an elaborate interactive accordion-style visualization to represent the MeSH term tree. This proved a bit too difficult given the time constraints associated with the overall project and the necessity of other more important UI features. Thus, the MeSH tree feature was saved for future work. 
+The front-end team's journey began to render an easy-to-use application deployed to Vercel that would allow users to interact with our project. Initially, we planned to build an elaborate interactive accordion-style visualization to represent the MeSH term tree. This proved overly tricky, given the time constraints associated with the overall project and the necessity of other more essential UI features. Thus, the MeSH tree feature was saved for future work. 
 
-The attention then turned to calling the API and delivering the relevant API results in a way that users could easily interact with. Initially, this was returned in "Expert" cards with simple information about each author that users could click on to see more detailed information. Armed with useful feedback from the project customer, the front-end team pivoted to displaying the results in an interactive table. The table is concise and utilizes toggle-able features that show and hide specific details without providing too much visual clutter. 
+The attention then turned to calling the API and delivering the relevant API results in a way that users could easily interact with. Initially, this was returned in ``Expert'' cards with basic information about each author that users could click on to see more detailed information. Armed with helpful feedback from the project customer, the front-end team pivoted to displaying the results in an interactive table. The table is concise and utilizes toggle-able features that show and hide specific details without providing too much visual clutter.  
 
-As the API has been updated in recent days, the front-end team has worked to incorporate the newly returned API data. Having received and applied the customer feedback early on in the project process, the front-end team set the UI in a way that can be easily built upon to add and remove future complexity as data updates. Several secondary features have been implemented as well, including user profiles for saving and exporting historical searches. 
+As the API has been updated recently, the front-end team has worked to incorporate the newly returned API data. Having received and applied the customer feedback early on in the project process, the front-end team set the UI in a way that can be easily built upon to add and remove future complexity as data updates. Several secondary features have also been implemented, including user profiles for saving and exporting historical searches. 
 
 \subsubsection{API}
 
-Developing the API required interfacing with both the UI and persistence layer dependency. The challenges were to make the interface for the UI more narrow while meeting all of its use cases, protecting the credentials of the data sources, calculating aggregates when needed, and allowing the system to be extensible into additional or changing data sources.
+Developing the API required interfacing with both the UI and persistence layer dependency. The challenges were making the UI interface more narrow while meeting all of its use cases, protecting the credentials of the data sources, calculating aggregates when needed, and allowing the system to be extensible into additional or changing data sources. 
 
-Initially, we sought to unify the technology stack and develop the API in Python hosted on AWS. However, given the late arrival of the AWS credits, differing levels of familiarity with this stack, and time constraints, the API was developed in C-Sharp and .NET using the Microsoft Stack.
+Initially, we sought to unify the technology stack and develop the API in Python hosted on AWS. However, given the late arrival of the AWS credits, differing levels of familiarity with this stack, and time constraints, the API was developed in C-Sharp and .NET using the Microsoft Stack. 
 
-One of the most significant challenges was building the queries and aggregations into Elasticsearch. The PubMed data, as well as the Elasticsearch index, is centered around publications. However, the Doyen system focuses on the experts who authored those publications. For example, each publication's data contains a set of other PubMed entries it references by their ID. To calculate the aggregate for citation counts, this meant  finding how many times each publication's identifier appeared in this list for other entries and then summing all of the publication-specific citation counts for a given author based on their set of publications. In SQL, this would have been a very different query, but Elasticsearch's power was in finding the relevant articles.
+Building the queries and aggregations into Elasticsearch was one of the most significant challenges. The PubMed data, as well as the Elasticsearch index, is centered around publications. However, the Doyen system focuses on the experts who authored those publications. For example, each publication's data contains other PubMed entries it references by their ID. Calculating the aggregate for citation counts meant finding how many times each publication's identifier appeared in this list for other entries and then summing all of the publication-specific citation counts for a given author based on their set of publications. This would have been a very different query in SQL, but Elasticsearch's power was in finding the relevant articles. 
 
-We faced a trade-off in designing what data to produce aggregate metrics for. The extremely local design would aggregate based on the limit and offsets (the page) of a given search. The global design would aggregate based on all of the publications in the database. After discussions with the customer, we elected a design between these two extremes which aggregates based on all entries in the context of a search and then presents these sums as part of a paginated result set to the user.
+We faced a trade-off in designing what data to produce aggregate metrics for. The highly local design would aggregate based on a given search's limit and offsets (the page). The global design would aggregate based on all the database publications. After discussions with the customer, we elected a design between these two extremes which aggregates based on all entries in the context of a search. Then we presented these sums as part of a paginated result set to the user. 
 
-\subsubsection{Back End}
+\subsubsection{Back-End}
 
-In the beginning, one of our core questions was how best to store our data, and in particular whether we should first group it by author or leave it grouped by article, and group by author when processing a request. We developed the outline of a pipeline for processing the PubMed content.
+Initially, one of our core questions was how best to store our data, particularly whether we should first group it by author or leave it grouped by article and group it by the author when processing a request. We developed the outline of a pipeline for processing the PubMed content. 
 
-Later, we decided to settle on using ElasticSearch, and we had to get an instance hosted first locally and then on the cloud. We found that using the docker image for ElasticSearch allowed us to reliably run elastic search on any of our operating systems.  We conceptually finished our PubMed processing pipeline, turning it into a general CLI tool with increasing options to control the amount of content loaded.
+Later, we settled on using Elasticsearch and had to get an instance hosted locally and then on the cloud. Using the Docker image for Elasticsearch allowed us to run Elasticsearch on any of our operating systems reliably. We conceptually finished our PubMed processing pipeline, turning it into a general CLI tool with increasing options to control the content loaded. 
 
-As we were approaching the end of the term, we developed a CloudFormation template to deploy a could ecosystem for running an EC2 instance with ElasticSearch. We initially had difficulties running ElasticSearch directly in EC2, but found success running the system in Docker
+As we approached the term's end, we developed a CloudFormation template to deploy a cloud ecosystem for running an EC2 instance with Elasticsearch. We initially had difficulties running Elasticsearch directly in EC2 but successfully ran the system in Docker. 
 
-Finally, in this last weeks we worked ironed out the issues in our pipeline, and allowed us to reliably load much larger sections of the PubMed data. We documented the deployment process and added some extra enhancements.
+Finally, in these last weeks, we ironed out the issues in our pipeline, allowing us to load much larger sections of the PubMed data reliably. We documented the deployment process and added some extra enhancements. 
 
 \subsubsection{Team Coordination}
 
-We found that it was difficult for us to all remain in sync given the lack of overlapping time. This made it difficult to fit things neatly into sprints, or a similar regular structure. However we communicated frequently using Discord, and when issues arose, we were able to address them fairly quickly. Given how tight our timelines were, every small delay was keenly felt, however the only thing we felt lacking was more time to work together.
+Given the lack of overlapping time, we struggled to remain in sync. It was difficult to fit things neatly into sprints or a similar regular structure. However we communicated frequently using Discord, and when issues arose, we were able to address them fairly quickly. Given how tight our timelines were, every slight delay was keenly felt. However, the only thing we felt lacking was more time to work together. 

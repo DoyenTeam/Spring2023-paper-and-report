@@ -1,16 +1,29 @@
 \section{Software Availability}
 
-One of the core goals of this project was to create a resource that was open-source and available for community development and feedback. All project code, including this paper, can be found in our GitHub organization (\url{https://github.com/DoyenTeam}). The code and documentation for our back end and API can be found at (\url{https://github.com/DoyenTeam/doyen}), and our front end can be found at (\url{https://github.com/DoyenTeam/doyenclient}). Our back end uses Python for our ingestion pipeline and C# for our API. The front-end is implemented using NextJS and Tailwind for styling.
+One of the core goals of this project was to create a resource that was open-source and available for community development and feedback. All project code, including this paper, can be found in our GitHub organization (\url{https://github.com/DoyenTeam}). The code and documentation for our back-end and API can be found at (\url{https://github.com/DoyenTeam/doyen}), and our front-end can be found at (\url{https://github.com/DoyenTeam/doyenclient}). Our back-end uses Python for our ingestion pipeline and C\# for our API. The front-end is implemented using NextJS and Tailwind for styling.
+
+The LaTex files for this paper can also be found in our GitHub organization here: \url{https://github.com/DoyenTeam/Spring2023-paper-and-report}.
 
 \section{Data Availability}
 
-The PubMed data is open source, free to use, and available from their FTP server (\url{https://ftp.ncbi.nlm.nih.gov/pubmed/}). For more methods of downloading data from PubMed, see the NIH page describing downloads at \url{https://pubmed.ncbi.nlm.nih.gov/download/}.
+The PubMed data is open-source, free to use, and available from their FTP server (\url{https://ftp.ncbi.nlm.nih.gov/pubmed/}). For more methods of downloading data from PubMed, see the NIH page describing downloads at \url{https://pubmed.ncbi.nlm.nih.gov/download/}.
 
 \section{Acknowledgements}
 
-We acknowledge that this work was performed as part of our capstone project for the Harvard Extension School, taught by Peter Henstock in the Spring Semester of 2023.
+This work was part of our capstone project for the Harvard Extension School, taught by Peter Henstock in the Spring Semester of 2023. 
 
 \section{Author Contributions}
 
 All authors contributed equally.
 
+\section{Use of AI}
+
+This section of the project made extensive use of AI tools. In particular, the following tools were used:
+\begin{itemize}
+    \item \href{https://copilot.github.com/}{GitHub Copilot}
+    \item \href{https://chat.openai.com/}{ChatGPT}
+\end{itemize}
+
+ChatGPT was used on a free trial account, and GitHub Copilot was used on a paid account integrated with the software development tool PyCharm. ChatGPT was used extensively when formulating a CloudFormation template. We asked it to suggest chunks of the template and then asked follow-up questions to help fix it and fill in the gaps. GitHub Copilot offered suggestions for completions in the template for comments and resource definitions. The process was altogether highly integrated and iterative. We would get a suggestion from ChatGPT, apply it with some completion and input from GitHub Copilot, try to run the template, then start the cycle over again to refine it based on the results. Search engines such as Google were also used to verify the results given by ChatGPT and debug specific errors that ChatGPT and Copilot struggled to resolve. 
+
+Our primary goal in using AI for this task was to evaluate its effectiveness and learn how to use it effectively. We found this niche to be a perfect fit for AI tools. The task was highly structured but required much manual lookup of arbitrary names and boilerplate. In addition, although finding the exact boilerplate is hard, it is easy for a human to parse its meaning. This combination of hard-to-form but easy-to-check tasks is perfect for AI. Incidentally, it is also some of the most tedious work in software development. 
